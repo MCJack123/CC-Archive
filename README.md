@@ -28,7 +28,7 @@ Program & library for accessing \*.a files. Uses System V/GNU-style archives.
 * *nil* ar.save(*table* data, *string* path): Writes a list of file entries to an ar archive.
   * data: The list of file entries to write
   * path: The absolute path of the ar file to save
-## CLI
+### CLI
 Functions similarly to GNU/BSD `ar`, with the following options:
 ```
 commands:
