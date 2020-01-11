@@ -1,7 +1,7 @@
 -- Archive library for CC
 local LibDeflate = require "LibDeflate"
 
-compression_level = nil -- compression level (nil for default)
+local compression_level = nil -- compression level (nil for default)
 
 local function split(inputstr, sep)
     if sep == nil then
@@ -196,11 +196,11 @@ local function create(data)
     return retval
 end
 
-function new() return create({}) end
+local function new() return create({}) end
 
-function load(path) return create(import(path)) end
+local function load(path) return create(import(path)) end
 
-function read(path)
+local function read(path)
     local file = fs.open(path, "rb")
     local retval = ""
     local b = file.read()
@@ -212,7 +212,7 @@ function read(path)
     return create(textutils.unserialize(LibDeflate:DecompressGzip(retval)))
 end
 
-function setCompressionLevel(level) compression_level = level end
+local function setCompressionLevel(level) compression_level = level end
 
 local archive = {new = new, load = load, read = read, setCompressionLevel = setCompressionLevel}
 setmetatable(archive, {__call = function(self, path) if path ~= nil and fs.exists(path) then if fs.isDir(path) then return load(path) else return read(path) end else return new() end end})

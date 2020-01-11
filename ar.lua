@@ -53,7 +53,7 @@ function ar.load(path)
         if string.match(name, "^#1/%d+$") then name = file.read(tonumber(string.match(name, "#1/(%d+)"))) 
         elseif string.match(name, "^/%d+$") then if name_table then 
             local n = tonumber(string.match(name, "/(%d+)"))
-            name = string.sub(name_table, n+1, string.find(name_table, "/", n) - 1)
+            name = string.sub(name_table, n+1, string.find(name_table, "\n", n+1) - 1)
         else table.insert(name_rep, name) end end
         data.name = name
         data.data = file.read(size)
@@ -117,7 +117,7 @@ function ar.pack(path)
     local retval = {}
     for k,v in pairs(fs.list(path)) do
         local p = fs.combine(path, v)
-        retval[v] = read(p)
+        retval[v] = ar.read(p)
     end
     return retval
 end
@@ -134,9 +134,9 @@ function ar.save(data, path)
     file.write("!<arch>\n")
     local name_table = {}
     local name_str = nil
-    for k,v in pairs(data) do if string.len(v.name) > 16 then 
-        name_table[v.name] = string.len(name_str)
-        name_str = (name_str or "") .. v.name .. "/\n"
+    for k,v in pairs(data) do if string.len(v.name) > 15 then 
+        name_table[v.name] = string.len(name_str or "")
+        name_str = (name_str or "") .. v.name .. "\n"
     end end
     if name_str then
         file.write("//" .. string.rep(" ", 46) .. pad(tostring(string.len(name_str)), 10) .. "`\n" .. name_str)
