@@ -15,21 +15,21 @@ for k,v in pairs(args) do
     elseif v == "-f" or v == "--force" then overwrite = true
     elseif v == "-h" or v == "--help" then
         print([[Usage: gzip [OPTION]... [FILE]
-        Compress or uncompress FILEs (by default, compress FILES in-place).
-        
-          -c, --stdout      write on standard output, keep original files unchanged
-          -d, --decompress  decompress
-          -f, --force       force overwrite of output file
-          -h, --help        give this help
-          -k, --keep        keep (don't delete) input files
-          -l, --list        list compressed file contents
-          -t, --test        test compressed file integrity
-          -v, --verbose     verbose mode
-          -V, --version     display version number
-          -1, --fast        compress faster
-          -9, --best        compress better
-        
-        With no FILE, or when FILE is -, read standard input.]])
+Compress or uncompress FILEs (by default, compress FILES in-place).
+
+    -c, --stdout      write on standard output, keep original files unchanged
+    -d, --decompress  decompress
+    -f, --force       force overwrite of output file
+    -h, --help        give this help
+    -k, --keep        keep (don't delete) input files
+    -l, --list        list compressed file contents
+    -t, --test        test compressed file integrity
+    -v, --verbose     verbose mode
+    -V, --version     display version number
+    -1, --fast        compress faster
+    -9, --best        compress better
+
+With no FILE, or when FILE is -, read standard input.]])
         return
     elseif v == "-k" or v == "--keep" then keep = true
     elseif v == "-l" or v == "--list" then mode = 2
