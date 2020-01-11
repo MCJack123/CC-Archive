@@ -68,7 +68,8 @@ function tar.load(path, noser, rawdata)
                 s=s+1
                 return string.byte(string.sub(path, s-1, s-1))
             end,
-            close = function() end
+            close = function() end,
+            seek = true,
         }
     else file = fs.open(path, "rb") end
     local oldread = file.read
@@ -78,7 +79,7 @@ function tar.load(path, noser, rawdata)
         c = c or 1
         if c < 1 then return end
         local retval = nil
-        if http.websocket then
+        if file.seek then
             retval = oldread(c)
             for ch in retval:gmatch(".") do sum = sum + ch:byte() end
         else
@@ -198,10 +199,12 @@ function tar.read(base, p)
         deviceNumber = nil,
         data = ""
     }
-    local c = file.read()
-    while c ~= nil do 
-        retval.data = retval.data .. string.char(c)
-        c = file.read()
+    if file.seek then retval.data = file.read(fs.getSize(fs.combine(base, p))) else
+        local c = file.read()
+        while c ~= nil do 
+            retval.data = retval.data .. string.char(c)
+            c = file.read()
+        end
     end
     file.close()
     return retval
@@ -318,6 +321,73 @@ local function CurrentTime(unixTime)
     }
 end
 
+local usage_str = [=[Usage: tar [OPTION...] [FILE]...
+CraftOS 'tar' saves many files together into a single tape or disk archive, and
+can restore individual files from the archive.
+
+Examples:
+  tar -cf archive.tar foo bar  # Create archive.tar from files foo and bar.
+  tar -tvf archive.tar         # List all files in archive.tar verbosely.
+  tar -xf archive.tar          # Extract all files from archive.tar.
+
+ Local file name selection:
+
+      --add-file=FILE        add given FILE to the archive (useful if its name
+                             starts with a dash)
+  -C, --directory=DIR        change to directory DIR
+      --no-null              disable the effect of the previous --null option
+      --no-recursion         avoid descending automatically in directories
+      --null                 -T reads null-terminated names; implies
+                             --verbatim-files-from
+      --recursion            recurse into directories (default)
+  -T, --files-from=FILE      get names to extract or create from FILE
+  
+ Main operation mode:
+
+  -A, --catenate, --concatenate   append tar files to an archive
+  -c, --create               create a new archive
+  -d, --diff, --compare      find differences between archive and file system
+      --delete               delete from the archive (not on mag tapes!)
+  -r, --append               append files to the end of an archive
+  -t, --list                 list the contents of an archive
+  -u, --update               only append files newer than copy in archive
+  -x, --extract, --get       extract files from an archive
+
+ Overwrite control:
+
+  -k, --keep-old-files       don't replace existing files when extracting,
+                             treat them as errors
+      --overwrite            overwrite existing files when extracting
+      --remove-files         remove files after adding them to the archive
+  -W, --verify               attempt to verify the archive after writing it
+
+ Device selection and switching:
+
+  -f, --file=ARCHIVE         use archive file or device ARCHIVE
+   
+ Device blocking:
+
+  -i, --ignore-zeros         ignore zeroed blocks in archive (means EOF)
+  
+ Compression options:
+
+  -z, --gzip, --gunzip, --ungzip   filter the archive through gzip
+  
+ Local file selection:
+
+  -N, --newer=DATE-OR-FILE, --after-date=DATE-OR-FILE
+                             only store files newer than DATE-OR-FILE
+  
+ Informative output:
+
+  -v, --verbose              verbosely list files processed
+  
+ Other options:
+
+  -?, --help                 give this help list
+      --usage                give a short usage message
+      --version              print program version]=]
+
 if pcall(require, "tar") then
     local args = {...}
     local arch = nil
@@ -372,7 +442,7 @@ if pcall(require, "tar") then
             if string.find(v, "T") then nextarg = 4 end
             if string.find(v, "v") then verbosity = 1  end
             if string.find(v, "?") then
-                print("Usage: ")
+                print(usage_str)
                 return 2
             end
         elseif string.sub(v, 1, 2) == "--" then
@@ -388,10 +458,10 @@ if pcall(require, "tar") then
             elseif v == "--extract" then mode = 6
             elseif v == "--get" then mode = 6
             elseif v == "--help" or v == "--usage" then 
-                print("Usage: ")
+                print(usage_str)
                 return 2
             elseif v == "--version" then
-                print("CraftOS tar v0.9")
+                print("CraftOS tar v1.0")
                 return 2
             elseif v == "--keep-old-files" then replace = false
             elseif v == "--overwrite" then replace = true

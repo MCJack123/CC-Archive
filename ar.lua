@@ -17,11 +17,14 @@ function ar.load(path)
     local seek = 0
     file.read = function(c) if c then
         local retval = nil
-        for i = 1, c do
-            local n = oldread()
-            if n == nil then return retval end
-            retval = (retval or "") .. string.char(n)
-            if (seek + i) % 10240 == 0 then os.queueEvent(os.pullEvent()) end 
+        if c < 1 then c = 1 end
+        if file.seek then retval = oldread(c) else
+            for i = 1, c do
+                local n = oldread()
+                if n == nil then return retval end
+                retval = (retval or "") .. string.char(n)
+                if (seek + i) % 102400 == 0 then os.queueEvent(os.pullEvent()) end
+            end
         end
         seek = seek + c
         return retval
@@ -84,7 +87,7 @@ end
 
 -- Extracts files from a table or file to a directory
 function ar.extract(data, path)
-    if type(data) == "string" then data = load(data) end
+    if type(data) == "string" then data = ar.load(data) end
     if not fs.exists(path) then fs.makeDir(path) end
     for k,v in pairs(data) do
         local p = fs.combine(path, v.name)
@@ -103,10 +106,12 @@ function ar.read(p)
         mode = fs.getPermissions and cc2u(fs.getPermissions(p, fs.getOwner(p) or 0)) * 0x40 + cc2u(fs.getPermissions(p, "*")) + bit.band(fs.getPermissions(p, "*"), 0x10) * 0x80 or 0x1FF,
         data = ""
     }
-    local c = file.read()
-    while c ~= nil do 
-        retval.data = retval.data .. string.char(c)
-        c = file.read()
+    if file.seek then retval.data = file.read(fs.getSize(p)) else
+        local c = file.read()
+        while c ~= nil do 
+            retval.data = retval.data .. string.char(c)
+            c = file.read()
+        end
     end
     file.close()
     return retval
@@ -117,7 +122,7 @@ function ar.pack(path)
     local retval = {}
     for k,v in pairs(fs.list(path)) do
         local p = fs.combine(path, v)
-        retval[v] = ar.read(p)
+        if not fs.isDir(p) then retval[v] = ar.read(p) end
     end
     return retval
 end
@@ -193,7 +198,7 @@ if pcall(require, "ar") then
     local args = {...}
     if #args < 2 then error("Usage: ar <dpqrtx[cfTuv]> <archive.a> [path] [files...]") end
     if args[1] == "--version" then
-        print("CraftOS ar (CCKernel2 binutils) 1.0 (compatible with GNU/BSD ar)\nCopyright (c) 2019 JackMacWindows.")
+        print("CraftOS ar (CCKernel2 binutils) 1.0 (compatible with GNU/BSD ar)\nCopyright (c) 2019-2020 JackMacWindows.")
         return 2
     end
     local mode = nil
