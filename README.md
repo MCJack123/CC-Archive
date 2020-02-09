@@ -98,7 +98,7 @@ With no FILE, or when FILE is -, read standard input.
 Modified version of [LibDeflate](https://github.com/SafeteeWow/LibDeflate) that works with ComputerCraft. See the official repo for more details.
 
 ## muxzcat
-Version of [pts's muxzcat program](https://github.com/pts/muxzcat) ported to Lua. Decompresses XZ/LZMA files.
+Version of [pts's muxzcat program](https://github.com/pts/muxzcat) ported to Lua. Decompresses XZ/LZMA files. Licensed under GPL v2.0 or later.
 ### Library
 *boolean, number* muxzcat.DecompressXzOrLzmaFile(*string/FILE* input, *string/FILE* output): Decompresses files from/to disk.
   * input: Path or IO file to read from
