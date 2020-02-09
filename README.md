@@ -1,5 +1,5 @@
 # CC-Archive
-Various archiving/compression programs and libraries for ComputerCraft. All libraries should be loaded with `require()`.
+Various archiving/compression programs and libraries for ComputerCraft. All libraries should be loaded with `require()`. Everything in this repository is under public domain unless otherwise specified, though it would be nice if you link back to this repo if you use one of the libraries.
 
 ## ar
 Program & library for accessing \*.a files. Uses System V/GNU-style archives.
@@ -96,6 +96,21 @@ With no FILE, or when FILE is -, read standard input.
 
 ## LibDeflate
 Modified version of [LibDeflate](https://github.com/SafeteeWow/LibDeflate) that works with ComputerCraft. See the official repo for more details.
+
+## muxzcat
+Version of [pts's muxzcat program](https://github.com/pts/muxzcat) ported to Lua. Decompresses XZ/LZMA files.
+### Library
+*boolean, number* muxzcat.DecompressXzOrLzmaFile(*string/FILE* input, *string/FILE* output): Decompresses files from/to disk.
+  * input: Path or IO file to read from
+  * output: Path or IO file to write to
+  * Returns: Whether the task succeeded, and an error code if it failed
+*string/nil, number* muxzcat.DecompressXzOrLzmaString(*string* input): Decompresses XZ/LZMA data from a string.
+  * input: Contents of file to decompress
+  * Returns: The decompressed data, or nil on failure plus an error code
+*string* muxzcat.GetError(*number* code): Returns a somewhat human readable string for an error code.
+  * code: The error code as returned from either decompress function
+  * Returns: A short all-caps string that describes the error
+*table* muxzcat.Errors: Table mapping error strings to error codes.
 
 ## tar
 Program & library for accessing tar archives. Uses UStar-style archives.
@@ -205,4 +220,21 @@ Examples:
   -?, --help                 give this help list
       --usage                give a short usage message
       --version              print program version
+```
+
+## unxz
+Extracts an XZ file.
+### CLI
+```
+Usage: unxz [OPTION]... [FILE]...
+Decompress FILEs in the .xz format.
+
+  -k, --keep         keep (don't delete) input files
+  -f, --force        force overwrite of output file
+  -c, --stdout       write to standard output and don't delete input files
+  -h, --help         display this help and exit
+  -V, --version      display the version number and exit
+
+Report bugs to https://github.com/MCJack123/CC-Archive/issues.
+Uses JackMacWindows's Lua port of muxzcat. Licensed under GPL v2.0.
 ```
