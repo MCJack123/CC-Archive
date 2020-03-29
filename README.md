@@ -100,17 +100,17 @@ Modified version of [LibDeflate](https://github.com/SafeteeWow/LibDeflate) that 
 ## muxzcat
 Version of [pts's muxzcat program](https://github.com/pts/muxzcat) ported to Lua. Decompresses XZ/LZMA files. Licensed under GPL v2.0 or later.
 ### Library
-*boolean, number* muxzcat.DecompressXzOrLzmaFile(*string/FILE* input, *string/FILE* output): Decompresses files from/to disk.
+* *boolean, number* muxzcat.DecompressXzOrLzmaFile(*string/FILE* input, *string/FILE* output): Decompresses files from/to disk.
   * input: Path or IO file to read from
   * output: Path or IO file to write to
   * Returns: Whether the task succeeded, and an error code if it failed
-*string/nil, number* muxzcat.DecompressXzOrLzmaString(*string* input): Decompresses XZ/LZMA data from a string.
+* *string/nil, number* muxzcat.DecompressXzOrLzmaString(*string* input): Decompresses XZ/LZMA data from a string.
   * input: Contents of file to decompress
   * Returns: The decompressed data, or nil on failure plus an error code
-*string* muxzcat.GetError(*number* code): Returns a somewhat human readable string for an error code.
+* *string* muxzcat.GetError(*number* code): Returns a somewhat human readable string for an error code.
   * code: The error code as returned from either decompress function
   * Returns: A short all-caps string that describes the error
-*table* muxzcat.Errors: Table mapping error strings to error codes.
+* *table* muxzcat.Errors: Table mapping error strings to error codes.
 
 ## tar
 Program & library for accessing tar archives. Uses UStar-style archives.
