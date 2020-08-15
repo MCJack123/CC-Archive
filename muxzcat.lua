@@ -287,66 +287,66 @@ setmetatable(bnot, {__sub = function(_, rhs) return bitlib.bnot(rhs) end})
 
 local str_input, str_output
 
+local function writeTableSeq(tab, i, n, ...) if n ~= nil then tab[i] = n return writeTableSeq(tab, i+1, ...) end end
+
 local function READ_FROM_STDIN_TO_ARY8(a, fromIdx, size)
     local str
     if str_input then
         str, str_input = str_input:sub(1, size), str_input:sub(size+1)
-        local i = 0
-        for c in str:gmatch(".") do
-            a[fromIdx+i] = c:byte()
-            i=i+1
-        end
-        return i
+        for i = 1, #str, 256 do writeTableSeq(a, fromIdx + i - 1, str:byte(i, i + 256)) end
+        return #str
     else
         str = io.input():read(size)
-        for i = 1, #str do a[fromIdx+i-1] = str:byte(i) end
+        for i = 1, #str, 256 do writeTableSeq(a, fromIdx + i - 1, str:byte(i, i + 256)) end
         --assert(#a - fromIdx == #str - 1, (#a - fromIdx) .. ", " .. #str .. ", " .. size)
         return #str
     end
 end
 
+local function readTableSeq(tab, i, j) if i == j then return tab[i] elseif i > j then return nil else return tab[i], readTableSeq(tab, i+1, j) end end
+
 local function WRITE_TO_STDOUT_FROM_ARY8(a, fromIdx, size)
     if str_output then
-        for i = fromIdx, fromIdx + size - 1 do str_output = str_output .. string.char(a[i]) end
+        for i = fromIdx, fromIdx + size - 1, 256 do str_output = str_output .. string.char(readTableSeq(a, i, math.min(fromIdx + size - 1, i + 255))) end
         return size
     else
-        for i = 1, size do io.output():write(string.char(a[i+fromIdx-1])) end
+        for i = 1, size, 256 do io.output():write(string.char(readTableSeq(a, i+fromIdx-1, math.min(fromIdx + size - 1, i + fromIdx + 254)))) end
         return size
     end
 end
 
-bufCur = 0;
-dicSize = 0;
-range = 0;
-code = 0;
-dicPos = 0;
-dicBufSize = 0;
-processedPos = 0;
-checkDicSize = 0;
-state = 0;
-rep0 = 1;
-rep1 = 1;
-rep2 = 1;
-rep3 = 1;
-remainLen = 0;
-tempBufSize = 0;
-readCur = 0;
-readEnd = 0;
-needFlush = 0;
-needInitLzma = 0;
-needInitDic = 0;
-needInitState = 0;
-needInitProp = 0;
-lc = 0;
-lp = 0;
-pb = 0;
-lcm8 = 0;
-_probs16 = {}
-probs16 = setmetatable({}, {__index = function(_, idx) return _probs16[idx] -band- 0xFFFF end, __newindex = function(_, idx, val) _probs16[idx] = val -band- 0xFFFF end});
-_readBuf8 = {}
-readBuf8 = setmetatable({}, {__index = function(_, idx) return _readBuf8[idx] -band- 0xFF end, __newindex = function(_, idx, val) _readBuf8[idx] = val -band- 0xFF end});
-_dic8 = {}
-dic8 = setmetatable({}, {__index = function(_, idx) return _dic8[idx] -band- 0xFF end, __newindex = function(_, idx, val) _dic8[idx] = val -band- 0xFF end});
+local bufCur = 0;
+local dicSize = 0;
+local range = 0;
+local code = 0;
+local dicPos = 0;
+local dicBufSize = 0;
+local processedPos = 0;
+local checkDicSize = 0;
+local state = 0;
+local rep0 = 1;
+local rep1 = 1;
+local rep2 = 1;
+local rep3 = 1;
+local remainLen = 0;
+local tempBufSize = 0;
+local readCur = 0;
+local readEnd = 0;
+local needFlush = 0;
+local needInitLzma = 0;
+local needInitDic = 0;
+local needInitState = 0;
+local needInitProp = 0;
+local lc = 0;
+local lp = 0;
+local pb = 0;
+local lcm8 = 0;
+local _probs16 = {}
+local probs16 = setmetatable({}, {__index = function(_, idx) return _probs16[idx] --[[-band- 0xFFFF]] end, __newindex = function(_, idx, val) _probs16[idx] = val -band- 0xFFFF end});
+local _readBuf8 = {}
+local readBuf8 = setmetatable({}, {__index = function(_, idx) return _readBuf8[idx] --[[-band- 0xFF]] end, __newindex = function(_, idx, val) _readBuf8[idx] = val -band- 0xFF end});
+local _dic8 = {}
+local dic8 = setmetatable({}, {__index = function(_, idx) return _dic8[idx] --[[-band- 0xFF]] end, __newindex = function(_, idx, val) _dic8[idx] = val -band- 0xFF end});
 
 local function ResetGlobals()
     bufCur = 0;
@@ -633,7 +633,7 @@ local function LzmaDec_DecodeReal2(drDicLimit, drBufLimit)
                             probs16[drProbLenIdx] = drTtt + (bitlib.rshift((2048 - drTtt), (5)));
                             drProbLenIdx = drProbIdx + 2 + (drPosState -blshift- (3)) ;
                             drOffset = 0 ;
-                            drLimitSub = ((1) -blshift- (3)) ;
+                            drLimitSub = (8) ;
                         else
                             range = range - (drBound) ;
                             code = code - (drBound) ;
@@ -652,14 +652,14 @@ local function LzmaDec_DecodeReal2(drDicLimit, drBufLimit)
                                 probs16[drProbLenIdx] = drTtt + (bitlib.rshift((2048 - drTtt), (5)));
                                 drProbLenIdx = drProbIdx + 130 + (drPosState -blshift- (3)) ;
                                 drOffset = 8 ;
-                                drLimitSub = (1) -blshift- (3) ;
+                                drLimitSub = 8 ;
                             else
                                 range = range - (drBound) ;
                                 code = code - (drBound) ;
                                 probs16[drProbLenIdx] = drTtt - (bitlib.rshift((drTtt), (5)));
                                 drProbLenIdx = drProbIdx + 258 ;
                                 drOffset = 8 + 8 ;
-                                drLimitSub = (1) -blshift- (8) ;
+                                drLimitSub = 256 ;
                             end
                         end
                         do
@@ -710,8 +710,8 @@ local function LzmaDec_DecodeReal2(drDicLimit, drBufLimit)
                                     probs16[(drProbIdx + distance)] = drTtt - (bitlib.rshift((drTtt), (5)));
                                     distance = (distance + distance) + 1;
                                 end
-                            until not (((distance) < ((1 -blshift- 6))));
-                            distance = distance - (1 -blshift- 6) ;
+                            until not (((distance) < ((64))));
+                            distance = distance - (64) ;
                         end
                         assert((distance <= 0x7fffffff) and ((distance) < (64)));
                         if (((distance) >= (4))) then
@@ -1133,7 +1133,7 @@ local function LzmaDec_TryDummy(tdCur, tdBufLimit)
                 tdRange = tdBound ;
                 tdProbLenIdx = tdProbIdx + 2 + (tdPosState -blshift- (3)) ;
                 tdOffset = 0 ;
-                tdLimitSub = (1) -blshift- (3) ;
+                tdLimitSub = 8 ;
             else
                 tdRange = tdRange - tdBound ;
                 tdCode = tdCode - tdBound ;
@@ -1152,13 +1152,13 @@ local function LzmaDec_TryDummy(tdCur, tdBufLimit)
                     tdRange = tdBound ;
                     tdProbLenIdx = tdProbIdx + 130 + (tdPosState -blshift- (3)) ;
                     tdOffset = 8 ;
-                    tdLimitSub = (1) -blshift- (3) ;
+                    tdLimitSub = 8 ;
                 else
                     tdRange = tdRange - tdBound ;
                     tdCode = tdCode - tdBound ;
                     tdProbLenIdx = tdProbIdx + 258 ;
                     tdOffset = 8 + 8 ;
-                    tdLimitSub = (1) -blshift- (8) ;
+                    tdLimitSub = 256 ;
                 end
             end
             do
@@ -1210,11 +1210,11 @@ local function LzmaDec_TryDummy(tdCur, tdBufLimit)
                         tdCode = tdCode - tdBound ;
                         tdPosSlot = (tdPosSlot + tdPosSlot) + 1;
                     end
-                until not (((tdPosSlot) < ((1) -blshift- (6))));
-                tdPosSlot = tdPosSlot - (1) -blshift- (6) ;
+                until not (((tdPosSlot) < (64)));
+                tdPosSlot = tdPosSlot - (64) ;
             end
 
-            assert((tdPosSlot <= 0x7fffffff) and ((tdPosSlot) < ((1) -blshift- (6))));
+            assert((tdPosSlot <= 0x7fffffff) and ((tdPosSlot) < (64)));
             if (((tdPosSlot) >= (4))) then
                 local tdDirectBitCount = (bitlib.rshift((tdPosSlot), (1))) - 1;
                 if (((tdPosSlot) < (14))) then
@@ -1533,7 +1533,7 @@ end
 local function WriteFrom(wfDicPos)
 
 
-
+    local lastTime = os.epoch("utc")
 
 
     while (((wfDicPos) ~= (dicPos))) do
@@ -1542,6 +1542,11 @@ local function WriteFrom(wfDicPos)
             return 9;
         end
         wfDicPos = wfDicPos + wfGot ;
+        if textutils and os.epoch("utc") - lastTime > 3000 then 
+            --write(",")
+            lastTime = os.epoch("utc")
+            os.queueEvent(os.pullEvent())
+        end
     end
 
     return 0;
@@ -1584,7 +1589,7 @@ local function DecompressXzOrLzma()
         ) and (
             (
                 (function() dicSize = GetLE4(readCur + 1); return dicSize end)()
-            ) >= ((1 -blshift- 12))
+            ) >= ((4096))
         ) and (
             (dicSize) < bitlib.band((1610612736 + 1), 0x7fffffff)
         )
@@ -1719,7 +1724,7 @@ local function DecompressXzOrLzma()
             return 62;
         end
         dicSize = (((2) -bor- ((dicSizeProp) -band- 1)) -blshift- (math.floor((dicSizeProp) / 2) + 11));
-        assert(((dicSize) >= ((1 -blshift- 12))));
+        assert(((dicSize) >= ((4096))));
 
 
 
@@ -1935,7 +1940,7 @@ return {
         input:close()
         output:close()
         if not ok then
-            --if res then io.stderr:write(res .. "\n") end
+            if res then io.stderr:write(res .. "\n") end
             return false, -1 
         else return res == 0, res end
     end,
@@ -1950,7 +1955,7 @@ return {
         ResetGlobals()
         local ok, res = pcall(DecompressXzOrLzma)
         if not ok then
-            --if res then io.stderr:write(res .. "\n") end
+            if res then io.stderr:write(res .. "\n") end
             return -1
         elseif res == 0 then return str_output
         elseif res == 53 and #str_output > 0 then return str_output, res
