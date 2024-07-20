@@ -518,8 +518,8 @@ if pcall(require, "tar") then
                 end
             end
             file.close()
-            return load(LibDeflate:DecompressGzip(rawdata), noser, true)
-        else return load(shell.resolve(arch), noser) end
+            return tar.load(LibDeflate:DecompressGzip(rawdata), noser, true)
+        else return tar.load(shell.resolve(arch), noser) end
     end
     local function saveFile(data)
         if not compress and arch then tar.save(data, shell.resolve(arch)) else
