@@ -160,7 +160,9 @@ function tar.extract(data, path, link)
         elseif (v.type == 1 or v.type == 2) and kernel then table.insert(links, v)
         elseif v.type == 0 or v.type == 7 then
             local file = fs.open(p, "wb")
-            for s in string.gmatch(v.data, ".") do file.write(string.byte(s)) end
+            if v.data ~= nil then
+                for s in string.gmatch(v.data, ".") do file.write(string.byte(s)) end
+            end
             file.close()
             if kernel and v.owner ~= nil then
                 fs.setPermissions(p, "*", u2cc(bit.brshift(v.mode, 6)) + bit.band(v.mode, 0x800) / 0x80)
